@@ -146,10 +146,15 @@ async function submitLogs(logs) {
  * @returns {Promise<void>} - resolves once the log ingestor finished current run and is scheduled to run again.
  */
 export default async function startLogIngestor() {
+  debug(
+    `Starting log ingestor, concurrency limit: 1, active executions: ${limitConcurrency.activeCount}, pending executions: ${limitConcurrency.pendingCount}`
+  );
   return limitConcurrency(executeLogIngestor);
 }
 
 async function executeLogIngestor() {
+  debug(`Executing log ingestor process`);
+
   // clear timeout timer if it exists (this is to prevent multiple timers from being set)
   if (executeLogIngestor.timeout) clearTimeout(executeLogIngestor.timeout);
 
