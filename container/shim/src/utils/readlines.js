@@ -48,11 +48,14 @@ async function setResumableOffset(filename, offset, currentStat) {
   const { ino, size } = currentStat ?? (await stat(filename));
 
   // synchronously read and write to avoid potential race conditions
-  const offsetfile = readFileSync(offsetFilename(filename), "utf8");
-  const resumables = JSON.parse(offsetfile);
-  const updated = { ...resumables, [ino]: { offset, size } };
-
-  writeFileSync(offsetFilename(filename), JSON.stringify(updated));
+  let resumables = {};
+  try {
+    const offsetfile = readFileSync(offsetFilename(filename), "utf8");
+    resumables = JSON.parse(offsetfile);
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+  writeFileSync(offsetFilename(filename), JSON.stringify({ ...resumables, [ino]: { offset, size } }));
 
   return offset;
 }
