@@ -1,0 +1,12 @@
+version: "3.3"
+services:
+  promtail:
+    image: grafana/promtail:2.7.2
+    container_name: saturn-promtail
+    command: -config.expand-env=true -config.file=/etc/promtail/promtail-config.yml
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ${SATURN_HOME:-$HOME}/shared/nginx_log:/var/log/nginx
+      - ${SATURN_HOME:-$HOME}/shared/promtail/promtail-config.yml:/etc/promtail/promtail-config.yml
