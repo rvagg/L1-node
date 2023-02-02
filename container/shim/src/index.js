@@ -29,11 +29,15 @@ import { debug } from "./utils/logging.js";
 const GATEWAY_TIMEOUT = 120_000;
 const PROXY_REQUEST_HEADERS = [
   "cache-control",
+  "accept-ranges",
+  "content-range",
   // nginx with proxy-cache does not pass the "if-none-match" request header
   // to the origin. The fix is to pass a custom header.
   "x-if-none-match",
 ];
 const PROXY_RESPONSE_HEADERS = [
+  "accept-ranges",
+  "content-range",
   "content-disposition",
   "content-type",
   "content-length",
@@ -104,14 +108,15 @@ const handleCID = asyncHandler(async (req, res) => {
       let [start, end] = req.headers.range.split("=")[1].split("-");
       start = parseInt(start, 10);
       end = parseInt(end, 10);
-
+      if (end > testCAR.length - 1) {
+        end = testCAR.length - 1;
+      }
       res.set({
         "Accept-Ranges": "bytes",
         "Content-Range": `bytes ${start}-${end}/${testCAR.length}`,
       });
       return res.status(206).end(testCAR.slice(start, end + 1));
     }
-
     res.set("Saturn-Node-Version", NODE_VERSION);
     return res.send(testCAR);
   }
