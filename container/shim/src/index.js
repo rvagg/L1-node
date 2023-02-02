@@ -98,20 +98,20 @@ const handleCID = asyncHandler(async (req, res) => {
 
   res.set("Content-Type", mimeTypes.lookup(req.path) || "application/octet-stream");
 
-  if (req.headers.range) {
-    let [start, end] = req.headers.range.split("=")[1].split("-");
-    start = parseInt(start, 10);
-    end = parseInt(end, 10);
-
-    res.set({
-      "Accept-Ranges": "bytes",
-      "Content-Range": `bytes ${start}-${end}/${testCAR.length}`,
-    });
-    return res.status(206).end(testCAR.slice(start, end + 1));
-  }
-
   // Testing CID
   if (cid === TESTING_CID) {
+    if (req.headers.range) {
+      let [start, end] = req.headers.range.split("=")[1].split("-");
+      start = parseInt(start, 10);
+      end = parseInt(end, 10);
+
+      res.set({
+        "Accept-Ranges": "bytes",
+        "Content-Range": `bytes ${start}-${end}/${testCAR.length}`,
+      });
+      return res.status(206).end(testCAR.slice(start, end + 1));
+    }
+
     res.set("Saturn-Node-Version", NODE_VERSION);
     return res.send(testCAR);
   }
