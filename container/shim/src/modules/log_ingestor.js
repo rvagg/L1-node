@@ -180,7 +180,7 @@ async function executeLogIngestor() {
 
         // save the first and last timestamp of the batch of logs for debugging
         if (i === 0) since = parsed.time;
-        if (i === read.lines.length - 1) until = parsed.time;
+        if (parsed.time) until = parsed.time;
 
         const valid = parseSingleEntry(parsed);
 
