@@ -66,10 +66,7 @@ async function isFileAccessible(filename, flags = fs.constants.R_OK) {
   }
 }
 
-function parseSingleLine(line) {
-  // parse the line into an object
-  const parsed = logfmt.parse(line);
-
+function parseSingleEntry(parsed) {
   // use mapped keys and getters to extract the values we want
   const vars = Object.entries(NGINX_LOG_KEYS_MAP).reduce((acc, [key, getter]) => {
     acc[key] = getter(parsed);
@@ -172,17 +169,31 @@ async function executeLogIngestor() {
 
     if (read.lines.length) {
       const logs = [];
+      let since, until;
 
       for (let i = 0; i < read.lines.length; i++) {
         // skip empty lines
         if (read.lines[i] === "") continue;
 
         // parse the line into an object
-        const parsed = parseSingleLine(read.lines[i]);
+        const parsed = logfmt.parse(read.lines[i]);
+
+        // save the first and last timestamp of the batch of logs for debugging
+        if (i === 0) since = parsed.time;
+        if (i === read.lines.length - 1) until = parsed.time;
+
+        const valid = parseSingleEntry(parsed);
 
         // add parsed log line if it is valid (only valid retrieval)
-        if (parsed) logs.push(parsed);
+        if (valid) logs.push(valid);
       }
+
+      debug(
+        `Read ${read.lines.length} lines from ${logFile}`,
+        `(bytes from ${read.start} to ${read.offset})`,
+        `(time from ${since} to ${until})`
+      );
+      debug(`Out of ${read.lines.length} lines, ${logs.length} were valid retrievals`);
 
       // submit the logs to the log ingestor
       if (logs.length) {

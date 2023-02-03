@@ -58,6 +58,7 @@ async function setResumableOffset(filename, offset, currentStat) {
  * The returned promise will reject if the file cannot be opened or read.
  * The returned promise will resolve with an object containing:
  * - lines: an array of lines read from the file
+ * - start: the byte offset of the first line read
  * - offset: the byte offset of the last line read
  * - eof: true if the end of the file was reached
  * - confirmed: a function that confirms that the lines were processed and the offset can be updated
@@ -122,7 +123,7 @@ export default async function readlines(filename, offsetBytes = null, readSize =
       const eof = stream.bytesRead <= readSize;
 
       // resolve the promise with the lines read and a function to confirm the offset
-      resolve({ lines, offset, eof, confirmed: () => setResumableOffset(filename, offset) });
+      resolve({ lines, start: offsetBytes, offset, eof, confirmed: () => setResumableOffset(filename, offset) });
     });
 
     // reject the promise if there was an error reading the file
